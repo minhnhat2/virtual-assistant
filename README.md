@@ -40,4 +40,37 @@ other file image other otherCar1.png and car1
 
 #pip install face-recognition
 
+some example
+what's your name
+
+hello
+
+how are you
+
+what time is it
+
+open Google Map
+
+open Google
+
+open Youtube
+
+open Facebook
+
+Wiki
+
+Take a screenshot
+
+Take a photo ( and save file photo , show file)
+
+Open word
+
+Open game
+
+Keyboard
+
+Weather
+
+Face
+
 
