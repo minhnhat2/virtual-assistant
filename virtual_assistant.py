@@ -1,11 +1,13 @@
 import tkinter as tk
 import pyttsx3
+import time
 import speech_recognition as sr
 import webbrowser
 import wikipedia
 import pyautogui
+import datetime
 import cv2
-import os
+import os,sys
 import pygame
 from pygame.locals import *
 import random
@@ -13,6 +15,10 @@ from pynput import keyboard
 import PySimpleGUI as sg
 from bs4 import BeautifulSoup as bs
 import requests
+import face_recognition
+import math
+import numpy as np
+
 
 # Initialize the speech engine
 engine = pyttsx3.init()
@@ -52,33 +58,71 @@ def respond(text):
         conversation_box.insert(tk.END, "Virtual Assistant: I'm doing well, thank you. How can I help you?\n")
         engine.say("I'm doing well, thank you. How can I help you?")
         engine.runAndWait()
-    elif "open youtube" in text:
-        conversation_box.insert(tk.END, "Virtual Assistant: Opening Youtube...\n")
-        engine.say("Opening Youtube")
+    elif "what time is it" in text or "what time" in text:
+        # get the current time as a string
+        current_time = datetime.datetime.now().strftime("%I:%M %p")
+        conversation_box.insert(tk.END, f"Virtual Assistant: The current time is {current_time}.\n")
+        engine.say(f"The current time is {current_time}.")
         engine.runAndWait()
-        webbrowser.open_new("https://www.youtube.com/")
-    elif "open google" in text:
-        conversation_box.insert(tk.END, "Virtual Assistant: Opening Google...\n")
-        engine.say("Opening Google")
+    elif "open Google Map" in text:
+        conversation_box.insert(tk.END, "Virtual Assistant: What do you want to search for?\n")
+        engine.say("What do you want to search for?")
         engine.runAndWait()
-        webbrowser.open_new("https://www.google.com/")
-    elif "open facebook" in text:
-        conversation_box.insert(tk.END, "Virtual Assistant: Opening Facebook...\n")
-        engine.say("Opening Facebook")
-        engine.runAndWait()
-        webbrowser.open_new("https://www.facebook.com/")
-    elif "learn something through wiki" in text:
-        conversation_box.insert(tk.END, "Virtual Assistant: What do you want to learn?\n")
-        engine.say("What do you want to learn?")
-        engine.runAndWait()
+        r = sr.Recognizer()
         with sr.Microphone() as source:
             audio = r.listen(source)
         try:
             query = r.recognize_google(audio)
-            results = wikipedia.summary(query, sentences=2)
-            conversation_box.insert(tk.END, "Virtual Assistant: " + results + "\n")
-            engine.say(results)
-            engine.runAndWait()
+            conversation_box.insert(tk.END, "You: " + query + "\n")
+            url = f"https://www.google.com/maps/place/search?q={query}"
+            webbrowser.open(url)
+        except:
+            conversation_box.insert(tk.END, "Error: Unable to recognize speech.\n")
+    elif "open YouTube" in text:
+        conversation_box.insert(tk.END, "Virtual Assistant: What do you want to search for?\n")
+        engine.say("What do you want to search for?")
+        engine.runAndWait()
+        r = sr.Recognizer()
+        with sr.Microphone() as source:
+            audio = r.listen(source)
+        try:
+            query = r.recognize_google(audio)
+            conversation_box.insert(tk.END, "You: " + query + "\n")
+            url = "https://www.youtube.com/search?q=" + query
+            webbrowser.open(url)
+        except:
+            conversation_box.insert(tk.END, "Error: Unable to recognize speech.\n")
+    elif "open Google" in text:
+        conversation_box.insert(tk.END, "Virtual Assistant: What do you want to search for?\n")
+        engine.say("What do you want to search for?")
+        engine.runAndWait()
+        r = sr.Recognizer()
+        with sr.Microphone() as source:
+            audio = r.listen(source)
+        try:
+            query = r.recognize_google(audio)
+            conversation_box.insert(tk.END, "You: " + query + "\n")
+            url = "https://www.youtube.com/search?q=" + query
+            webbrowser.open(url)
+        except:
+            conversation_box.insert(tk.END, "Error: Unable to recognize speech.\n")
+    elif "open Facebook" in text:
+        conversation_box.insert(tk.END, "Virtual Assistant: Opening Facebook...\n")
+        engine.say("Opening Facebook")
+        engine.runAndWait()
+        webbrowser.open_new("https://www.facebook.com/")
+    elif "Wiki" in text:
+        conversation_box.insert(tk.END, "Virtual Assistant: What do you want to search for?\n")
+        engine.say("What do you want to search for?")
+        engine.runAndWait()
+        r = sr.Recognizer()
+        with sr.Microphone() as source:
+            audio = r.listen(source)
+        try:
+            query = r.recognize_google(audio)
+            conversation_box.insert(tk.END, "You: " + query + "\n")
+            url = "https://vi.wikipedia.org/wiki/search?q=" + query
+            webbrowser.open(url)
         except:
             conversation_box.insert(tk.END, "Error: Unable to recognize speech.\n")
     elif "take a screenshot" in text:
@@ -130,7 +174,7 @@ def respond(text):
         pygame.init()
         running = True
         screen = pygame.display.set_mode(size)
-        pygame.display.set_caption("Mariya's car game")
+        pygame.display.set_caption("Nhat's car game")
         car = pygame.image.load("car1.png")
         car_loc = car.get_rect(center=(right_lane, height*0.8))
         car2 = pygame.image.load("otherCar1.png")
@@ -187,7 +231,7 @@ def respond(text):
                             car_loc.centerx = right_lane
         pygame.quit()
 
-    elif "keyboard" in text or "keyboard recording" in text:
+    elif "keyboard" in text or "recording" in text:
         conversation_box.insert(tk.END, "Virtual Assistant: recording keyboard...\n")
         engine.say("Recording")
         engine.runAndWait()
@@ -250,6 +294,105 @@ def respond(text):
                 if weather in ('Freezing Drizzle','Chance of Snow','Sleet','Snow','Icy','Snow Showers'):
                     window['-IMAGE-'].update('symbols/snow.png')
         window.close()
+
+    elif "face" in text or "where my face" in text:
+        conversation_box.insert(tk.END, "Virtual Assistant: Open project face-recognition ...\n")
+        engine.say("Opening project face-recognition")
+        engine.runAndWait()
+        def face_confidence(face_distance, face_match_threshold=0.6):
+            range = (1.0 - face_match_threshold)
+            linear_val = (1.0 - face_distance) / (range * 2.0)
+            if face_distance > face_match_threshold:
+                return str(round(linear_val * 100, 2)) + '%'
+            else:
+                value = (linear_val + ((1.0 - linear_val) * math.pow((linear_val - 0.5) * 2, 0.2))) * 100
+                return str(round(value, 2)) + '%'
+        class FaceRecognition:
+            face_locations = []
+            face_encodings = []
+            face_names = []
+            known_face_encodings = []
+            known_face_names = []
+            process_current_frame = True
+
+            def __init__(self):
+                self.encode_faces()
+            def encode_faces(self):
+                for image in os.listdir('faces'):
+                    face_image = face_recognition.load_image_file(f"faces/{image}")
+                    face_encodings = face_recognition.face_encodings(face_image)
+                    if len(face_encodings) > 0:
+                        face_encoding = face_encodings[0]
+                        self.known_face_encodings.append(face_encoding)
+                        self.known_face_names.append(image)
+                    else:
+                        print(f"No face found in {image}")
+                print(self.known_face_names)
+            def run_recognition(self):
+                video_capture = cv2.VideoCapture(0)
+
+                if not video_capture.isOpened():
+                    sys.exit('Video source not found...')
+
+                while True:
+                    ret, frame = video_capture.read()
+
+            # Only process every other frame of video to save time
+                    if self.process_current_frame:
+                        # Resize frame of video to 1/4 size for faster face recognition processing
+                        small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
+
+                        # Convert the image from BGR color (which OpenCV uses) to RGB color (which face_recognition uses)
+                        rgb_small_frame = small_frame[:, :, ::-1]
+
+                        # Find all the faces and face encodings in the current frame of video
+                        self.face_locations = face_recognition.face_locations(rgb_small_frame)
+                        self.face_encodings = face_recognition.face_encodings(rgb_small_frame, self.face_locations)
+
+                        self.face_names = []
+                        for face_encoding in self.face_encodings:
+                            # See if the face is a match for the known face(s)
+                            matches = face_recognition.compare_faces(self.known_face_encodings, face_encoding)
+                            name = "Unknown"
+                            confidence = '???'
+
+                            # Calculate the shortest distance to face
+                            face_distances = face_recognition.face_distance(self.known_face_encodings, face_encoding)
+                              
+                            best_match_index = np.argmin(face_distances)
+                            if matches[best_match_index]:
+                                name = self.known_face_names[best_match_index]
+                                confidence = face_confidence(face_distances[best_match_index])
+
+                            self.face_names.append(f'{name} ({confidence})')
+
+                    self.process_current_frame = not self.process_current_frame
+
+                    # Display the results
+                    for (top, right, bottom, left), name in zip(self.face_locations, self.face_names):
+                        # Scale back up face locations since the frame we detected in was scaled to 1/4 size
+                        top *= 4
+                        right *= 4
+                        bottom *= 4
+                        left *= 4
+
+                        # Create the frame with the name
+                        cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
+                        cv2.rectangle(frame, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
+                        cv2.putText(frame, name, (left + 6, bottom - 6), cv2.FONT_HERSHEY_DUPLEX, 0.8, (255, 255, 255), 1)
+
+                    # Display the resulting image
+                    cv2.imshow('Face Recognition', frame)
+
+                    # Hit 'q' on the keyboard to quit!
+                    if cv2.waitKey(1) == ord('q'):
+                        break
+                # Release handle to the webcam
+                video_capture.release()
+                cv2.destroyAllWindows()
+        if __name__ == '__main__':
+            fr = FaceRecognition()
+            fr.run_recognition()
 
     else:
         conversation_box.insert(tk.END, "Virtual Assistant: Sorry, I didn't understand what you said. Can you please try again?\n")
