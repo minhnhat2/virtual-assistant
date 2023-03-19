@@ -50,7 +50,7 @@ def respond(text):
         conversation_box.insert(tk.END, "Virtual Assistant: My name is Nhat dep trai , i am a botchat create by nhat!\n")
         engine.say(" My name is Nhat dep trai , i am a botchat create by nhat!")
         engine.runAndWait()
-    if text == "hello" or text=="hi":
+    elif text in ["hello", "hi"]:
         conversation_box.insert(tk.END, "Virtual Assistant: Hello!\n")
         engine.say("Hello!")
         engine.runAndWait()
@@ -64,7 +64,7 @@ def respond(text):
         conversation_box.insert(tk.END, f"Virtual Assistant: The current time is {current_time}.\n")
         engine.say(f"The current time is {current_time}.")
         engine.runAndWait()
-    elif "open Google Map" in text:
+    elif "open Google Map" in text or "Google Map" in text:
         conversation_box.insert(tk.END, "Virtual Assistant: What do you want to search for?\n")
         engine.say("What do you want to search for?")
         engine.runAndWait()
@@ -395,9 +395,12 @@ def respond(text):
             fr.run_recognition()
 
     else:
-        conversation_box.insert(tk.END, "Virtual Assistant: Sorry, I didn't understand what you said. Can you please try again?\n")
-        engine.say("Sorry, I didn't understand what you said. Can you please try again?")
+        conversation_box.insert(tk.END, "Virtual Assistant: Sorry, I didn't understand what you said. Let me Google it for you.\n")
+        engine.say("Sorry, I didn't understand what you said. Let me Google it for you.")
         engine.runAndWait()
+        query = text
+        url = "https://www.google.com/search?q=" + query
+        webbrowser.open(url)
 
 # Create the function to handle the button click event
 def on_button_click():
