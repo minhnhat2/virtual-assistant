@@ -18,6 +18,8 @@ import requests
 import face_recognition
 import math
 import numpy as np
+from googletrans import Translator
+
 
 
 # Initialize the speech engine
@@ -296,8 +298,8 @@ def respond(text):
         window.close()
 
     elif "take a video" in text or "recording video" in text:
-        conversation_box.insert(tk.END, "Virtual Assistant: Open project face-recognition ...\n")
-        engine.say("Opening project face-recognition")
+        conversation_box.insert(tk.END, "Virtual Assistant: Open video  ...\n")
+        engine.say("Opening video ")
         engine.runAndWait()
         # Create a VideoCapture object for the camera
         cap = cv2.VideoCapture(0)
@@ -329,6 +331,67 @@ def respond(text):
         out.release()
         cv2.destroyAllWindows()
 
+    elif "Translate" in text or "English" in text:
+        conversation_box.insert(tk.END, "Virtual Assistant: Open project translate ...\n")
+        engine.say("Opening translate ")
+        engine.runAndWait()
+        # Initialize the translator
+        translator = Translator()
+        # Create the GUI window
+        window = tk.Tk()
+        window.title("Vietnamese to English Translator")
+
+        # Create the input and output text boxes
+        input_box = tk.Text(window, height=10, width=50)
+        input_box.pack(side=tk.LEFT, padx=5, pady=5)
+        output_box = tk.Text(window, height=10, width=50)
+        output_box.pack(side=tk.RIGHT, padx=5, pady=5)
+        # Create the translation function for text input
+        def translate_text():
+            # Get the input text
+            input_text = input_box.get("1.0", "end-1c")
+            # Translate the text
+            translation = translator.translate(input_text, src="vi", dest="en")
+            # Set the output text
+            output_box.delete("1.0", "end")
+            output_box.insert("end", translation.text)
+
+        # Create the translation function for voice input
+        def translate_voice():
+            # Create a speech recognizer
+            recognizer = sr.Recognizer()
+            # Use the default microphone as the audio source
+            with sr.Microphone() as source:
+                # Wait for the user to speak
+                print("Speak now...")
+                audio = recognizer.listen(source)
+
+                # Use the recognizer to transcribe the audio
+                try:
+                    text = recognizer.recognize_google(audio, language="vi-VN")
+                    print("You said:", text)
+                except sr.UnknownValueError:
+                    print("Sorry, I could not understand what you said.")
+                    return
+                except sr.RequestError as e:
+                    print("Sorry, there was an error with the speech recognition service.")
+                    return
+            # Translate the text
+            translation = translator.translate(text, src="vi", dest="en")
+
+            # Set the output text
+            output_box.delete("1.0", "end")
+            output_box.insert("end", translation.text)
+        # Create the translate text button
+        text_button = tk.Button(window, text="Translate Text", command=translate_text)
+        text_button.pack(side=tk.LEFT, padx=5, pady=5)
+
+        # Create the translate voice button
+        voice_button = tk.Button(window, text="Translate Voice", command=translate_voice)
+        voice_button.pack(side=tk.RIGHT, padx=5, pady=5)
+
+        # Start the GUI loop
+        window.mainloop()
 
     elif "face" in text or "where my face" in text:
         conversation_box.insert(tk.END, "Virtual Assistant: Open project face-recognition ...\n")
