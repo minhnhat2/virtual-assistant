@@ -295,6 +295,41 @@ def respond(text):
                     window['-IMAGE-'].update('symbols/snow.png')
         window.close()
 
+    elif "take a video" in text or "recording video" in text:
+        conversation_box.insert(tk.END, "Virtual Assistant: Open project face-recognition ...\n")
+        engine.say("Opening project face-recognition")
+        engine.runAndWait()
+        # Create a VideoCapture object for the camera
+        cap = cv2.VideoCapture(0)
+        # Define the codec to use for the output video as XVID, which is a widely supported codec.
+        fourcc = cv2.VideoWriter_fourcc(*"XVID")
+        #Define the frame rate of the output video as 30 frames per second.
+        fps = 30
+        #Define the frame size of the output video as 640x480 pixels.
+        frame_size = (640, 480)
+        #Create a VideoWriter object out that writes video frames to 
+        #a file named output.avi using the specified codec, frame rate, and frame size.
+        out = cv2.VideoWriter("output.avi", fourcc, fps, frame_size)
+
+        while True:
+            # Capture a frame from the camera
+            ret, frame = cap.read()
+
+            # Display the frame
+            cv2.imshow("Camera Recording", frame)
+
+            # Write the frame to the video file
+            out.write(frame)
+
+            # Stop the program if the 'q' key is pressed
+            if cv2.waitKey(1) == ord("q"):
+                break
+        # Release the video capture and writer and destroy all windows
+        cap.release()
+        out.release()
+        cv2.destroyAllWindows()
+
+
     elif "face" in text or "where my face" in text:
         conversation_box.insert(tk.END, "Virtual Assistant: Open project face-recognition ...\n")
         engine.say("Opening project face-recognition")
